@@ -1,0 +1,17 @@
+version: '3'
+volumes:
+  psql:
+  pgadmin_data: # Volume for pgAdmin data
+services:
+  psql:
+    image: postgres
+    container_name: my_postgres_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: fb_clone_db
+
+    volumes:
+      - ./scripts:/docker-entrypoint-initdb.d
+    ports:
+      - 5432:5432 # binds port 5555 on your computer to the postgres port!

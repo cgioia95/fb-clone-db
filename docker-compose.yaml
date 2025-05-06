@@ -3,15 +3,28 @@ volumes:
   psql:
   pgadmin_data: # Volume for pgAdmin data
 services:
+  migrator:
+    build:
+      dockerfile: ./Dockerfile
+    environment:
+      DB_USERNAME: postgres
+      DB_PASSWORD: password
+      DB_HOST: psql
+    depends_on:
+      psql:
+        condition: service_healthy
+    command: [ "sh", "-c", "npm run migrate && npm run seed" ]
   psql:
     image: postgres
     container_name: my_postgres_db
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
       POSTGRES_DB: fb_clone_db
-
-    volumes:
-      - ./scripts:/docker-entrypoint-initdb.d
     ports:
       - 5432:5432 # binds port 5555 on your computer to the postgres port!

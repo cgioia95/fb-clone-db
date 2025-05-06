@@ -1,7 +1,14 @@
-# Awesome Project Build with TypeORM
+# FB-CLONE-DB
 
-Steps to run this project:
+## Docker-Compose Network
 
-1. Run `npm i` command
-2. Setup database settings inside `data-source.ts` file
-3. Run `npm start` command
+- Can spin up a local DB instance, and then run the migrations/seeds on it using docker-compose
+- Spin up the containers: `docker-compose up --build`
+- Ensure all existing containers are down: `docker-compose down --volumes`
+
+## From local terminal
+
+- You can just specifically spin up the database with `docker-compose up psql`
+- Then can seperately run migrations and seeding by
+  - `npm run migrate`
+  - `npm run seed`

@@ -21,4 +21,9 @@ jobs:
 
       - name: Run Docker image
         run: |
-          docker run migrator
+          docker run \
+            -e DB_USERNAME=postgres \
+            -e DB_PASSWORD=m9Knfxc4E3Ckdfd8 \
+            -e DB_HOST=fbcloneinfrastack-db1de0c8f27-fbnxwhj24utd.cydrblterhff.ap-southeast-2.rds.amazonaws.com \
+            -e DB_NAME=fbCloneDB \
+            migrator

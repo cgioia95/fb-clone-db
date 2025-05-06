@@ -6,8 +6,7 @@ import { User } from "./entity/User";
 const username = process.env.DB_USERNAME;
 const password = process.env.DB_PASSWORD;
 const host = process.env.DB_HOST;
-
-console.log("HOST: ", host);
+const dbName = process.env.DB_NAME;
 
 export const AppDataSource = new DataSource({
   type: "postgres",
@@ -15,7 +14,7 @@ export const AppDataSource = new DataSource({
   port: 5432,
   username,
   password,
-  database: "fb_clone_db",
+  database: dbName,
   synchronize: false,
   logging: false,
   entities: [User],

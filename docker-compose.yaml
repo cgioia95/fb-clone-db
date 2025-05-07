@@ -10,6 +10,7 @@ services:
       DB_USERNAME: postgres
       DB_PASSWORD: password
       DB_HOST: psql
+      DB_NAME: fb_clone_db
     depends_on:
       psql:
         condition: service_healthy

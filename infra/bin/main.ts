@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import * as cdk from "aws-cdk-lib";
 import { DbStack } from "../lib/db-stack";
+import { HelloLambdaStack } from "../lib/lambda-stack";
 
 const app = new cdk.App();
 new DbStack(app, "DbStack", {
@@ -9,3 +10,5 @@ new DbStack(app, "DbStack", {
     region: process.env.CDK_DEFAULT_REGION,
   },
 });
+
+new HelloLambdaStack(app, "HelloLambdaStack");

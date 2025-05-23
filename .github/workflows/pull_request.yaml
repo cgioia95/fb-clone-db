@@ -1,0 +1,56 @@
+name: Pull Request
+on:
+  pull_request:
+    branches:
+      - "main"
+
+permissions:
+  id-token: write # This is required for requesting the JWT
+  contents: read # This is required for actions/checkout
+
+jobs:
+  diff-infra:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: "14" # Adjust Node.js version as per your project requirements
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Configure AWS Credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ secrets.AWS_GITHUB_OIDC_ROLE }}
+          aws-region: ap-southeast-2
+
+      - name: Run CDK Diff
+        run: npm run infra:diff
+  # run-migrations:
+  #   runs-on: ubuntu-latest
+
+  #   steps:
+  #     - name: Check out repository
+  #       uses: actions/checkout@v3
+
+  #     - name: Set up Docker Buildx
+  #       uses: docker/setup-buildx-action@v2
+
+  #     - name: Build Docker image
+  #       run: |
+  #         docker build -t migrator .
+
+  #     - name: Run Docker image
+  #       run: |
+  #         docker run \
+  #           -e DB_USERNAME=postgres \
+  #           -e DB_PASSWORD=REPLACE_WITH_SECRET \
+  #           -e DB_HOST=fbcloneinfrastack-db1de0c8f27-fbnxwhj24utd.cydrblterhff.ap-southeast-2.rds.amazonaws.com \
+  #           -e DB_NAME=fbCloneDB \
+  #           migrator

@@ -21,6 +21,6 @@
     "migrate": "typeorm-ts-node-commonjs migration:run -d ./src/data-source.ts",
     "cdk": "cdk",
     "infra:diff": "cdk diff -o infra/templates",
-    "infra:deploy": "cdk deploy -o infra/templates"
+    "infra:deploy": "cdk deploy --all -o infra/templates"
   }
 }

@@ -12,3 +12,4 @@ temp/
 
 .cdk.staging
 cdk.out
+infra/templates/*

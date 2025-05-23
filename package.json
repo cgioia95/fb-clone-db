@@ -20,7 +20,7 @@
     "seed": "ts-node src/seed.ts",
     "migrate": "typeorm-ts-node-commonjs migration:run -d ./src/data-source.ts",
     "cdk": "cdk",
-    "infra:diff": "cdk diff",
-    "infra:deploy": "cdk deploy"
+    "infra:diff": "cdk diff -o infra/templates",
+    "infra:deploy": "cdk deploy -o infra/templates"
   }
 }

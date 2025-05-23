@@ -5,3 +5,10 @@ build/
 tmp/
 temp/
 .env
+
+*.js
+!jest.config.js
+*.d.ts
+
+.cdk.staging
+cdk.out

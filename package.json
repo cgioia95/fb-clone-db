@@ -8,6 +8,8 @@
     "typescript": "^5.8.2"
   },
   "dependencies": {
+    "aws-cdk-lib": "^2.198.0",
+    "constructs": "^10.4.2",
     "dotenv": "^16.5.0",
     "pg": "^8.14.1",
     "reflect-metadata": "^0.2.2",
@@ -15,6 +17,8 @@
   },
   "scripts": {
     "seed": "ts-node src/seed.ts",
-    "migrate": "typeorm-ts-node-commonjs migration:run -d ./src/data-source.ts"
+    "migrate": "typeorm-ts-node-commonjs migration:run -d ./src/data-source.ts",
+    "infra:diff": "cdk diff",
+    "infra:deploy": "cdk deploy"
   }
 }

@@ -6,9 +6,12 @@ import {
   Peer,
   Port,
   SecurityGroup,
+  Subnet,
   SubnetType,
   Vpc,
 } from "aws-cdk-lib/aws-ec2";
+import * as lambda from "aws-cdk-lib/aws-lambda";
+import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import {
   Credentials,
   DatabaseInstance,
@@ -20,6 +23,7 @@ import {
 import { Secret } from "aws-cdk-lib/aws-secretsmanager";
 import { StringParameter } from "aws-cdk-lib/aws-ssm";
 import { Construct } from "constructs";
+import path = require("path");
 
 export class DbStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -30,6 +34,10 @@ export class DbStack extends cdk.Stack {
 
     const vpc = Vpc.fromLookup(this, "ExistingVPC", { vpcId });
 
+    const privateSubnets = vpc.selectSubnets({
+      subnetType: SubnetType.PRIVATE_ISOLATED, // or choose PUBLIC/PRIVATE_WITH_NAT based on your needs
+    });
+
     const parameterGroup = new ParameterGroup(this, "fb-clone-db-parameters", {
       engine: DatabaseInstanceEngine.postgres({
         version: PostgresEngineVersion.VER_17_4,
@@ -38,6 +46,19 @@ export class DbStack extends cdk.Stack {
         "rds.force_ssl": "0",
       },
     });
+
+    const dbSecurityGroup = new SecurityGroup(this, "DbSecurityGroup", {
+      vpc,
+      description: "Allow access to RDS instance",
+      allowAllOutbound: false,
+    });
+
+    // Add ingress rule to allow Lambda access within the VPC
+    dbSecurityGroup.addIngressRule(
+      Peer.ipv4(vpc.vpcCidrBlock),
+      Port.tcp(3000),
+      "Allow Lambda access from VPC"
+    );
 
     const engine = DatabaseInstanceEngine.postgres({
       version: PostgresEngineVersion.VER_17_4,
@@ -61,6 +82,8 @@ export class DbStack extends cdk.Stack {
         },
       }
     );
+
+    const dbSecretArn = masterUserSecret.secretArn;
 
     // Create a Security Group
     const dbSg = new SecurityGroup(this, "Database-SG", {
@@ -93,5 +116,25 @@ export class DbStack extends cdk.Stack {
       allocatedStorage: 20,
       instanceIdentifier: "fb-clone-db",
     });
+
+    const lambdaFunction = new NodejsFunction(this, "HelloLambdaFunction", {
+      entry: path.join(__dirname, "../../src/lambda/index.ts"),
+      handler: "handler",
+      runtime: lambda.Runtime.NODEJS_18_X, // Latest Node.js runtime
+      vpc: vpc, // Specify the VPC
+      securityGroups: [dbSecurityGroup], // Use the DB security group
+      environment: {
+        DB_SECRET_ARN: dbSecretArn,
+      },
+    });
+
+    privateSubnets.subnets.forEach((subnet: Subnet) => {
+      dbSecurityGroup.addEgressRule(
+        Peer.ipv4(subnet.ipv4CidrBlock),
+        Port.tcp(3000),
+        `Allow database traffic to Lambda subnet ${subnet.subnetId}`
+      );
+    });
+    masterUserSecret.grantRead(lambdaFunction);
   }
 }

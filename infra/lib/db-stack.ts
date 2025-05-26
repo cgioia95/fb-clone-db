@@ -98,7 +98,7 @@ export class DbStack extends cdk.Stack {
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       parameterGroup,
       storageType: StorageType.STANDARD,
-      allocatedStorage: 0.5,
+      allocatedStorage: 1,
     });
   }
 }

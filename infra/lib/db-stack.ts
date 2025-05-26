@@ -28,7 +28,6 @@ export class DbStack extends cdk.Stack {
     // Retrieve VPC ID from Systems Manager Parameter Store
     const vpcId = StringParameter.valueFromLookup(this, "/fb-clone/vpc-id");
 
-    // Look up the existing VPC by its ID
     const vpc = Vpc.fromLookup(this, "ExistingVPC", { vpcId });
 
     const parameterGroup = new ParameterGroup(this, "fb-clone-db-parameters", {
@@ -45,7 +44,7 @@ export class DbStack extends cdk.Stack {
     });
     const instanceType = InstanceType.of(InstanceClass.T4G, InstanceSize.MICRO);
     const port = 5432;
-    const dbName = "fb-clone-db";
+    const dbName = "fbCloneDB";
 
     // create database master user secret and store it in Secrets Manager
     const masterUserSecret = new Secret(
@@ -76,17 +75,10 @@ export class DbStack extends cdk.Stack {
       `Allow port ${port} for database connection from only within the VPC (${vpc.vpcId})`
     );
 
-    // Add Inbound rule
-    dbSg.addIngressRule(
-      Peer.anyIpv4(),
-      Port.tcp(port),
-      `Allow port ${port} for database connection any ip anywhere`
-    );
-
     // create RDS instance (PostgreSQL)
     new DatabaseInstance(this, "fb-clone-db", {
       vpc,
-      vpcSubnets: { subnetType: SubnetType.PUBLIC },
+      vpcSubnets: { subnetType: SubnetType.PRIVATE_ISOLATED },
       instanceType,
       engine,
       port,
@@ -98,7 +90,8 @@ export class DbStack extends cdk.Stack {
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       parameterGroup,
       storageType: StorageType.STANDARD,
-      allocatedStorage: 0.5,
+      allocatedStorage: 20,
+      instanceIdentifier: "fb-clone-db",
     });
   }
 }

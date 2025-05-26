@@ -21,6 +21,8 @@
     "migrate": "typeorm-ts-node-commonjs migration:run -d ./src/data-source.ts",
     "cdk": "cdk",
     "infra:diff": "cdk diff -o infra/templates",
-    "infra:deploy": "cdk deploy --all -o infra/templates"
+    "infra:deploy": "cdk deploy --all -o infra/templates",
+    "db-live:start": "aws rds start-db-instance --db-instance-identifier fb-clone-db",
+    "db-live:stop": "aws rds stop-db-instance --db-instance-identifier fb-clone-db"
   }
 }

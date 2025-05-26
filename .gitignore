@@ -13,3 +13,4 @@ temp/
 .cdk.staging
 cdk.out
 infra/templates/*
+cdk.context.json

@@ -15,6 +15,7 @@ import {
   DatabaseInstanceEngine,
   ParameterGroup,
   PostgresEngineVersion,
+  StorageType,
 } from "aws-cdk-lib/aws-rds";
 import { Secret } from "aws-cdk-lib/aws-secretsmanager";
 import { StringParameter } from "aws-cdk-lib/aws-ssm";
@@ -30,7 +31,7 @@ export class DbStack extends cdk.Stack {
     // Look up the existing VPC by its ID
     const vpc = Vpc.fromLookup(this, "ExistingVPC", { vpcId });
 
-    const parameterGroup = new ParameterGroup(this, "CustomParameterGroup", {
+    const parameterGroup = new ParameterGroup(this, "fb-clone-db-parameters", {
       engine: DatabaseInstanceEngine.postgres({
         version: PostgresEngineVersion.VER_17_4,
       }),
@@ -42,9 +43,9 @@ export class DbStack extends cdk.Stack {
     const engine = DatabaseInstanceEngine.postgres({
       version: PostgresEngineVersion.VER_17_4,
     });
-    const instanceType = InstanceType.of(InstanceClass.T3, InstanceSize.MICRO);
+    const instanceType = InstanceType.of(InstanceClass.T4G, InstanceSize.MICRO);
     const port = 5432;
-    const dbName = "fbCloneDB";
+    const dbName = "fb-clone-db";
 
     // create database master user secret and store it in Secrets Manager
     const masterUserSecret = new Secret(
@@ -83,7 +84,7 @@ export class DbStack extends cdk.Stack {
     );
 
     // create RDS instance (PostgreSQL)
-    const dbInstance = new DatabaseInstance(this, "DB-1", {
+    new DatabaseInstance(this, "fb-clone-db", {
       vpc,
       vpcSubnets: { subnetType: SubnetType.PUBLIC },
       instanceType,
@@ -96,6 +97,8 @@ export class DbStack extends cdk.Stack {
       deleteAutomatedBackups: true,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       parameterGroup,
+      storageType: StorageType.STANDARD,
+      allocatedStorage: 0.5,
     });
   }
 }

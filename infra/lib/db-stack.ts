@@ -35,7 +35,7 @@ export class DbStack extends cdk.Stack {
     const vpc = Vpc.fromLookup(this, "ExistingVPC", { vpcId });
 
     const privateSubnets = vpc.selectSubnets({
-      subnetType: SubnetType.PRIVATE_ISOLATED, // or choose PUBLIC/PRIVATE_WITH_NAT based on your needs
+      subnetType: SubnetType.PRIVATE_ISOLATED,
     });
 
     const parameterGroup = new ParameterGroup(this, "fb-clone-db-parameters", {
@@ -108,7 +108,7 @@ export class DbStack extends cdk.Stack {
       securityGroups: [dbSg],
       databaseName: dbName,
       credentials: Credentials.fromSecret(masterUserSecret),
-      backupRetention: cdk.Duration.days(0), // disable automatic DB snapshot retention
+      backupRetention: cdk.Duration.days(0),
       deleteAutomatedBackups: true,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       parameterGroup,
@@ -120,13 +120,26 @@ export class DbStack extends cdk.Stack {
     const lambdaFunction = new NodejsFunction(this, "HelloLambdaFunction", {
       entry: path.join(__dirname, "../../src/lambda/index.ts"),
       handler: "handler",
-      runtime: lambda.Runtime.NODEJS_18_X, // Latest Node.js runtime
-      vpc: vpc, // Specify the VPC
-      securityGroups: [dbSecurityGroup], // Use the DB security group
+      runtime: lambda.Runtime.NODEJS_18_X,
+      vpc: vpc,
+      securityGroups: [dbSecurityGroup],
       environment: {
         DB_SECRET_ARN: dbSecretArn,
       },
     });
+
+    // Add a VPC Interface Endpoint for Secrets Manager
+    const secretsManagerEndpoint = vpc.addInterfaceEndpoint(
+      "SecretsManagerEndpoint",
+      {
+        service: {
+          name: `com.amazonaws.${cdk.Aws.REGION}.secretsmanager`,
+          port: 443,
+        },
+        subnets: privateSubnets,
+        securityGroups: [dbSecurityGroup],
+      }
+    );
 
     privateSubnets.subnets.forEach((subnet: Subnet) => {
       dbSecurityGroup.addEgressRule(
@@ -135,6 +148,7 @@ export class DbStack extends cdk.Stack {
         `Allow database traffic to Lambda subnet ${subnet.subnetId}`
       );
     });
+
     masterUserSecret.grantRead(lambdaFunction);
   }
 }
